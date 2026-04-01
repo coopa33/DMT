@@ -1,17 +1,20 @@
 from pathlib import Path
 import pandas as pd
 
-from data_analyser import Visualiser
+from data_analyser import load_data, Visualiser, Analyser
 
 
 def main():
     # Load the data
-    data_path = Path("data/dataset_mood_smartphone.csv")
-    visualiser = Visualiser(pd.read_csv(data_path))
+    df = load_data()  # Pass None to use
+    visualiser = Visualiser(df)
+    analyser = Analyser(df)
+
     # visualiser.datapoint_counts_per_id()
     # visualiser.timestamp_distribution_per_id()
     # visualiser.value_distribution_per_id()
     # visualiser.value_distribution_per_variable()
-    # visualiser.variable_distribution_per_id()
+    visualiser.visualize_value_distribution_per_variable()
+    # pprint(analyser.get_suggested_transformations())
 
 main()
