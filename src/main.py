@@ -11,6 +11,7 @@ def main():
     # visualiser.datapoint_counts_per_id()
     # visualiser.timestamp_distribution_per_id()
     # visualiser.value_distribution_per_id()
+    # visualiser.value_distribution_per_variable()
     # visualiser.variable_distribution_per_id()
 
 main()

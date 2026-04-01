@@ -45,6 +45,25 @@ class Visualiser:
             plt.grid(True, linestyle='--', alpha=0.7)
             plt.tight_layout()
             plt.show()
+    
+    def value_distribution_per_variable(self, type = "hist"):
+        """ Visualize the distribution of values per variable"""
+        grouped = self.data.groupby('variable')
+
+        if type == "box":
+            # Boxplots option might be better, especially for outlier visualization
+            pass
+
+        if type == "hist":
+            for id_var, group in grouped:
+                plt.figure(figsize=(10, 4))
+                plt.hist(group['value'], bins=50, color='green', alpha=0.7)
+                plt.xlabel('value')
+                plt.ylabel('Frequency')
+                plt.title(f"Distribution of values for variable {id_var}")
+                plt.grid(True, linestyle='--', alpha=0.7)
+                plt.tight_layout()
+                plt.show()
 
     def variable_distribution_per_id(self):
         """ Visualize the distribution of a specified variable per id. """
