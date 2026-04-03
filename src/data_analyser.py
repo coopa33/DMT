@@ -132,7 +132,10 @@ class Analyser:
         self.data = data
     
     def model_nas(self, method: str = "centrality-attr"):
+        """ Based on 'Data Mining: Concepts & Techniques', Chapter 3.2
+        """
         # In progress
+
         if method == "centrality-attr":
             grouped = self.data.groupby('variable')
 
@@ -140,29 +143,21 @@ class Analyser:
             # of the distribution. some test
             replacements = grouped.mean(numeric_only=True)
             attr = list(replacements.index)
-            print(replacements)
+
             for id_attr, group in grouped:
-
                 n_nas = group["value"].isna().sum()
-
                 if id_attr in attr and n_nas != 0:
 
                     # output number of nas found
                     print(f" === Attribute {id_attr} ===")
                     print(f"{group["value"].isna().sum()} NAs found. Replacing with {replacements.loc[id_attr]}")
+
+                    # replacement
                     mask = (self.data['variable'] == id_attr) & (self.data['value'].isna())
                     self.data.loc[mask,'value'] = replacements.loc[id_attr, 'value']
 
+                    # check remaining NAs, if any
                     print(f"Remaining NAs: {self.data.loc[self.data['variable'] == id_attr, 'value'].isna().sum()}")
-                    
-        
-
-
-
-
-
-
-
 
     def get_suggested_transformations(self):
         """
