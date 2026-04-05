@@ -5,7 +5,6 @@ import numpy as np
 import seaborn as sns
 from scipy import stats
 import matplotlib.pyplot as plt
-# from sklearn.impute import IterativeImputer, KNNImputer, SimpleImputer
 
 def load_data(file_path: str | None = None) -> pd.DataFrame:
     """ Load the dataset from a CSV file. """
@@ -18,47 +17,6 @@ def load_data(file_path: str | None = None) -> pd.DataFrame:
 class Visualiser:
     def __init__(self, data: pd.DataFrame):
         self.data = data
-
-    def descriptives(self):
-        ''' Descriptive statistics for all variables of the dataset '''
-        print(" === Descriptives ===")
-        data_audit = self.data.groupby('variable')['value'].describe()
-        print(data_audit, '\n')
-
-    def daily_format(self):
-        # To-do, as we're still in data exploration phase, will move to analyser class once complete aggregate database is created. 
-        # Seperate pieces of code could be refactored into smaller methods in Visualizer class for diagnostic purposes
-
-        '''Create an daily format database with appropriate aggregates for each variable. '''
-
-        # create date column for each entry
-        self.data['date'] = self.data['time'].dt.date
-
-        # lists of variable names; aggregation for durations should be sum, and for scores should be mean
-        sum_vars = [v for v in self.data['variable'].unique() if 'appCat' in v or v in ['screen', 'call', 'sms', 'activity']]
-        mean_vars = ['mood', 'circumplex.arousal', 'circumflex.valence']
-
-        # want a table of aggregate values for every combination of id, date, and variables
-        sum_mask = self.data['variable'].isin(sum_vars)
-        mean_mask = self.data['variable'].isin(mean_vars)
-        data_daily_sum = self.data[sum_mask].groupby(['id', 'date', 'variable'])['value'].sum().unstack()
-        data_daily_mean = self.data[mean_mask].groupby(['id', 'date', 'variable'])['value'].mean().unstack()
-        data_daily = pd.concat([data_daily_mean, data_daily_sum], axis = 1)
-        
-        # need to fill in days with no variable entries
-        start = data_daily.index.get_level_values('date').min()
-        end = data_daily.index.get_level_values('date').max()
-        complete_range = pd.date_range(start=start, end=end, freq='D')
-        
-        # insane groupby logic somehow recovers id in final dataframe
-        final_data = data_daily.groupby('id').apply(lambda x: x.droplevel(0).reindex(complete_range))
-
-        # input 0s as values for duration variables on inactive days 
-        duration_vars = [var for var in final_data.columns if var in sum_vars]
-        final_data[duration_vars] = final_data[duration_vars].fillna(0)
-
-        # Current: aggregated data with duration aggregate NAs replaced with 0. 
-        print(final_data.head())
 
     def datapoint_counts_per_id(self):
         """ Visualize the number of datapoints per id. """
@@ -83,6 +41,21 @@ class Visualiser:
             plt.xlabel('time')
             plt.ylabel('Frequency')
             plt.title(f'Distribution of times for ID {id_val}')
+            plt.xticks(rotation=45)
+            plt.grid(True, linestyle='--', alpha=0.7)
+            plt.tight_layout()
+            plt.show()
+
+    def timestamp_distribution_per_var(self):
+        """ Visualize the distribution of timestamps per variable. """
+        self.data['time'] = pd.to_datetime(self.data['time'])
+        grouped = self.data.groupby('variable')
+        for var_val, group in grouped:
+            plt.figure(figsize=(10, 4))
+            plt.hist(group['time'], bins=50, color='blue', alpha=0.7)
+            plt.xlabel('time')
+            plt.ylabel('Frequency')
+            plt.title(f'Distribution of times for variable {var_val}')
             plt.xticks(rotation=45)
             plt.grid(True, linestyle='--', alpha=0.7)
             plt.tight_layout()
@@ -172,6 +145,51 @@ class Visualiser:
 class Analyser:
     def __init__(self, data: pd.DataFrame):
         self.data = data
+
+    def design_mat(self):
+        self.data['time'] = pd.to_datetime(self.data['time'])
+        design_mat = self.data.pivot_table(index = ['id', 'time'],
+                                           columns = 'variable',
+                                           values = 'value',
+                                           aggfunc = 'mean'
+                                           )
+        print(design_mat.head())
+
+    def descriptives(self):
+        ''' Descriptive statistics for all variables of the dataset '''
+        print(" === Descriptives ===")
+        data_audit = self.data.groupby('variable')['value'].describe()
+        print(data_audit, '\n')
+
+    def daily_format(self):
+        # In progress
+        '''Create an daily format database with appropriate aggregates for each variable. '''
+
+        # create date column for each entry
+        self.data['date'] = self.data['time'].dt.date
+
+        # lists of variable names; aggregation for durations should be sum, and for scores should be mean
+        sum_vars = [v for v in self.data['variable'].unique() if 'appCat' in v or v in ['screen', 'call', 'sms', 'activity']]
+        mean_vars = ['mood', 'circumplex.arousal', 'circumflex.valence']
+
+        # want a table of aggregate values for every combination of id, date, and variables
+        sum_mask = self.data['variable'].isin(sum_vars)
+        mean_mask = self.data['variable'].isin(mean_vars)
+        data_daily_sum = self.data[sum_mask].groupby(['id', 'date', 'variable'])['value'].sum().unstack()
+        data_daily_mean = self.data[mean_mask].groupby(['id', 'date', 'variable'])['value'].mean().unstack()
+        data_daily = pd.concat([data_daily_mean, data_daily_sum], axis = 1)
+        
+
+    
+        # input 0s as values for duration variables on inactive days 
+        duration_vars = [var for var in data_daily.columns if var in sum_vars]
+        data_daily[duration_vars] = data_daily[duration_vars].fillna(0)
+
+        # some sort of imputation technique needed for replacing NAs in score aggregates with informative values.  
+
+        # Current: aggregated data with duration aggregate NAs replaced with 0. 
+        print(data_daily.head())
+
 
     def get_suggested_transformations(self):
         """

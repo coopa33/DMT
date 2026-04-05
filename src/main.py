@@ -10,16 +10,14 @@ def main():
     visualiser = Visualiser(df)
     analyser = Analyser(df)
 
-    visualiser.descriptives()
-    visualiser.daily_format()
-    # visualiser.check_temporal_density()
+    # visualiser.descriptives()
     # visualiser.datapoint_counts_per_id()
     # visualiser.timestamp_distribution_per_id()
+    # visualiser.timestamp_distribution_per_var()
     # visualiser.value_distribution_per_id()
     # visualiser.value_distribution_per_variable()
     # visualiser.visualize_value_distribution_per_variable()
+    analyser.daily_format()
     # pprint(analyser.get_suggested_transformations())
-
-    # print(analyser.model_nas())
 
 main()
