@@ -17,7 +17,7 @@ def main():
     # visualiser.value_distribution_per_id()
     # visualiser.value_distribution_per_variable()
     # visualiser.visualize_value_distribution_per_variable()
-    analyser.daily_format()
+    # analyser.daily_format()
     # pprint(analyser.get_suggested_transformations())
 
 main()
